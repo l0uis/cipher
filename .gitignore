@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+*.swp
+
+# Xcode
+Cipher/Cipher.xcodeproj/xcuserdata/
+Cipher/Cipher.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+build/
+
+# Node
+server/node_modules/
+server/.env
+
+# IDE
+.idea/
+.vscode/
