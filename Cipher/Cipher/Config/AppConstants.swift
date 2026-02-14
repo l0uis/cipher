@@ -3,7 +3,7 @@ import Foundation
 enum AppConstants {
     enum API {
         // Backend server URL - change to your deployed URL in production
-        static let serverBaseURL = "https://headquarters-cocktail-all-ministries.trycloudflare.com"
+        static let serverBaseURL = "https://cipher-production-def0.up.railway.app"
 
         static let metMuseumBaseURL = "https://collectionapi.metmuseum.org/public/collection/v1"
     }
