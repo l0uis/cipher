@@ -23,6 +23,20 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Cipher uses the camera to photograph carpet and textile patterns for cultural analysis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cipher accesses your photo library to select textile and carpet patterns for analysis.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SortsMillGoudy-Regular.ttf</string>
+		<string>SortsMillGoudy-Italic.ttf</string>
+		<string>REM-VariableFont_wght.ttf</string>
+		<string>REM-Italic-VariableFont_wght.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>CipherBackground</string>
+	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

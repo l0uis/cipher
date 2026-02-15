@@ -21,12 +21,12 @@ struct LoadingAnalysisView: View {
                 .scaleEffect(1.2)
 
             Text(steps[currentStep])
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
                 .foregroundStyle(.secondary)
                 .animation(.easeInOut, value: currentStep)
 
             Text("This may take up to a minute")
-                .font(.caption)
+                .font(CipherStyle.Fonts.caption)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity)

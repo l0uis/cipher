@@ -22,10 +22,11 @@ struct DetailView: View {
                     analysisContent
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 24)
             .padding(.bottom, 32)
         }
-        .navigationTitle(scan.patternName ?? "Analysis")
+        .background(CipherStyle.Colors.background.ignoresSafeArea())
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadImage()
@@ -50,17 +51,17 @@ struct DetailView: View {
 
             if let name = scan.patternName {
                 Text(name)
-                    .font(.title2.weight(.bold))
+                    .font(CipherStyle.Fonts.title1)
             }
 
             if let origin = scan.patternOrigin {
                 Label(origin, systemImage: "mappin.and.ellipse")
-                    .font(.subheadline)
+                    .font(CipherStyle.Fonts.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             Text(scan.capturedAt, format: .dateTime.month(.wide).day().year().hour().minute())
-                .font(.caption)
+                .font(CipherStyle.Fonts.caption)
                 .foregroundStyle(.tertiary)
         }
         .padding(.bottom, 8)
@@ -75,11 +76,11 @@ struct DetailView: View {
                 .foregroundStyle(.red)
 
             Text("Analysis Failed")
-                .font(.headline)
+                .font(CipherStyle.Fonts.headline)
 
             if let error = scan.errorMessage {
                 Text(error)
-                    .font(.caption)
+                    .font(CipherStyle.Fonts.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -180,7 +181,7 @@ struct DetailView: View {
     private func historyContent(_ data: HistoryOrigins) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             InfoRow(label: "Period", value: data.originPeriod)
             InfoRow(label: "Geographic Origin", value: data.geographicOrigin)
@@ -188,16 +189,16 @@ struct DetailView: View {
 
             if !data.evolutionTimeline.isEmpty {
                 Text("Evolution Timeline")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                     .padding(.top, 4)
 
                 ForEach(data.evolutionTimeline) { entry in
                     HStack(alignment: .top, spacing: 10) {
                         Text(entry.period)
-                            .font(.caption.weight(.medium))
+                            .font(CipherStyle.Fonts.body(11, weight: .medium))
                             .frame(width: 80, alignment: .leading)
                         Text(entry.description)
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -205,14 +206,14 @@ struct DetailView: View {
 
             if !data.tradeAndColonialInfluences.isEmpty {
                 Text("Trade & Colonial Influences")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                     .padding(.top, 4)
                 BulletList(items: data.tradeAndColonialInfluences)
             }
 
             if !data.revivalMoments.isEmpty {
                 Text("Revival Moments")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                     .padding(.top, 4)
                 BulletList(items: data.revivalMoments)
             }
@@ -223,21 +224,21 @@ struct DetailView: View {
     private func symbolsContent(_ data: SymbolsMotifs) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             if !data.primaryMotifs.isEmpty {
                 Text("Primary Motifs")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
 
                 ForEach(data.primaryMotifs) { motif in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(motif.name)
-                            .font(.subheadline.weight(.medium))
+                            .font(CipherStyle.Fonts.body(13, weight: .medium))
                         Text(motif.meaning)
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.secondary)
                         Text(motif.geometricDescription)
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.tertiary)
                     }
                     .padding(.vertical, 2)
@@ -248,19 +249,19 @@ struct DetailView: View {
 
             if !data.hiddenMeanings.isEmpty {
                 Text("Hidden Meanings")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.hiddenMeanings)
             }
 
             if !data.crossCulturalOverlaps.isEmpty {
                 Text("Cross-Cultural Overlaps")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.crossCulturalOverlaps)
             }
 
             if !data.mythologicalReferences.isEmpty {
                 Text("Mythological References")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.mythologicalReferences)
             }
         }
@@ -270,7 +271,7 @@ struct DetailView: View {
     private func culturalContent(_ data: CulturalRefs) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             ReferenceList(title: "Literary References", references: data.literaryReferences)
             ReferenceList(title: "Myths & Folklore", references: data.mythsAndFolklore)
@@ -278,13 +279,13 @@ struct DetailView: View {
 
             if !data.museumCollections.isEmpty {
                 Text("Museum Collections")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.museumCollections)
             }
 
             if !data.fashionReinterpretations.isEmpty {
                 Text("Fashion Reinterpretations")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.fashionReinterpretations)
             }
         }
@@ -294,21 +295,21 @@ struct DetailView: View {
     private func colorContent(_ data: ColorIntel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             if !data.dominantColors.isEmpty {
                 Text("Dominant Colors")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
 
                 ForEach(data.dominantColors) { color in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(color.color)
-                            .font(.subheadline.weight(.medium))
+                            .font(CipherStyle.Fonts.body(13, weight: .medium))
                         Text("Symbolism: \(color.symbolism)")
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.secondary)
                         Text("Cultural: \(color.culturalMeaning)")
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.tertiary)
                     }
                     .padding(.vertical, 2)
@@ -317,7 +318,7 @@ struct DetailView: View {
 
             if !data.emotionalAssociations.isEmpty {
                 Text("Emotional Associations")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.emotionalAssociations)
             }
 
@@ -325,7 +326,7 @@ struct DetailView: View {
 
             if !data.statusMarkers.isEmpty {
                 Text("Status Markers")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.statusMarkers)
             }
 
@@ -337,7 +338,7 @@ struct DetailView: View {
     private func materialContent(_ data: MaterialTech) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             InfoRow(label: "Textile Type", value: data.textileType)
             InfoRow(label: "Weaving Technique", value: data.weavingTechnique)
@@ -345,7 +346,7 @@ struct DetailView: View {
 
             if !data.regionSpecificTechniques.isEmpty {
                 Text("Region-Specific Techniques")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.regionSpecificTechniques)
             }
 
@@ -358,26 +359,26 @@ struct DetailView: View {
     private func popCultureContent(_ data: PopCultureRefs) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             ReferenceList(title: "Songs", references: data.songs)
             ReferenceList(title: "Films & Characters", references: data.filmsAndCharacters)
 
             if !data.subcultures.isEmpty {
                 Text("Subcultures")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.subcultures)
             }
 
             if !data.popHistoryMoments.isEmpty {
                 Text("Pop History Moments")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.popHistoryMoments)
             }
 
             if !data.notableArtists.isEmpty {
                 Text("Notable Artists")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.notableArtists)
             }
         }
@@ -387,13 +388,13 @@ struct DetailView: View {
     private func contemporaryContent(_ data: ContemporaryRel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(data.summary)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
 
             ReferenceList(title: "Designer Reinterpretations", references: data.designerReinterpretations)
 
             if !data.politicalSocialReclaiming.isEmpty {
                 Text("Political & Social Reclaiming")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.politicalSocialReclaiming)
             }
 
@@ -402,7 +403,7 @@ struct DetailView: View {
 
             if !data.controversies.isEmpty {
                 Text("Controversies & Debates")
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
                 BulletList(items: data.controversies)
             }
         }
@@ -415,12 +416,12 @@ struct DetailView: View {
         if !viewModel.metItems.isEmpty || !viewModel.europeanaItems.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Related Museum Pieces")
-                    .font(.title3.weight(.semibold))
+                    .font(CipherStyle.Fonts.title3)
                     .padding(.top, 8)
 
                 if !viewModel.metItems.isEmpty {
                     Text("The Metropolitan Museum of Art")
-                        .font(.caption.weight(.medium))
+                        .font(CipherStyle.Fonts.body(11, weight: .medium))
                         .foregroundStyle(.secondary)
 
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -434,7 +435,7 @@ struct DetailView: View {
 
                 if !viewModel.europeanaItems.isEmpty {
                     Text("Europeana Collection")
-                        .font(.caption.weight(.medium))
+                        .font(CipherStyle.Fonts.body(11, weight: .medium))
                         .foregroundStyle(.secondary)
 
                     ScrollView(.horizontal, showsIndicators: false) {

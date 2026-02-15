@@ -5,48 +5,47 @@ struct ScanCardView: View {
     @State private var thumbnail: UIImage?
 
     var body: some View {
-        HStack(spacing: 14) {
-            // Thumbnail
-            Group {
-                if let thumbnail {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Rectangle()
-                        .fill(.quaternary)
-                        .overlay {
-                            Image(systemName: "photo")
-                                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            // Image
+            Color.clear
+                .aspectRatio(CipherStyle.Layout.cardAspectRatio, contentMode: .fit)
+                .overlay {
+                    Group {
+                        if let thumbnail {
+                            Image(uiImage: thumbnail)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            Rectangle()
+                                .fill(.quaternary)
+                                .overlay {
+                                    if scan.analysisStatus == "analyzing" {
+                                        ProgressView()
+                                    } else {
+                                        Image(systemName: "photo")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                         }
+                    }
                 }
-            }
-            .frame(width: 72, height: 72)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            // Details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(scan.patternName ?? statusLabel)
-                    .font(.headline)
+            // Title
+            Text(scan.patternName ?? statusLabel)
+                .font(CipherStyle.Fonts.headline)
+                .foregroundStyle(CipherStyle.Colors.primaryText)
+                .lineLimit(2)
+
+            // Subline
+            if let origin = scan.patternOrigin {
+                Text(origin)
+                    .font(CipherStyle.Fonts.caption)
+                    .foregroundStyle(.secondary)
                     .lineLimit(1)
-
-                if let origin = scan.patternOrigin {
-                    Text(origin)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Text(scan.capturedAt, format: .dateTime.month(.abbreviated).day().hour().minute())
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
             }
-
-            Spacer()
-
-            statusIcon
         }
-        .padding(.vertical, 4)
         .task {
             thumbnail = await ImageStorageService.shared.loadImage(fileName: scan.imageFileName)
         }
@@ -57,23 +56,6 @@ struct ScanCardView: View {
         case "analyzing": return "Analyzing..."
         case "failed": return "Analysis Failed"
         default: return "Pending..."
-        }
-    }
-
-    @ViewBuilder
-    private var statusIcon: some View {
-        switch scan.analysisStatus {
-        case "analyzing":
-            ProgressView()
-        case "failed":
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
-        case "completed":
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-        default:
-            Image(systemName: "clock")
-                .foregroundStyle(.secondary)
         }
     }
 }

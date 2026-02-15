@@ -23,12 +23,12 @@ struct CategorySectionView<Content: View>: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title)
-                            .font(.headline)
+                            .font(CipherStyle.Fonts.title3)
                             .foregroundStyle(.primary)
 
                         if !isExpanded, let summary {
                             Text(summary)
-                                .font(.caption)
+                                .font(CipherStyle.Fonts.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                         }
@@ -69,11 +69,11 @@ struct InfoRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.caption)
+                .font(CipherStyle.Fonts.caption)
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
             Text(value)
-                .font(.subheadline)
+                .font(CipherStyle.Fonts.subheadline)
         }
         .padding(.vertical, 2)
     }
@@ -89,7 +89,7 @@ struct BulletList: View {
                     Text("\u{2022}")
                         .foregroundStyle(.secondary)
                     Text(item)
-                        .font(.subheadline)
+                        .font(CipherStyle.Fonts.subheadline)
                 }
             }
         }
@@ -104,18 +104,18 @@ struct ReferenceList: View {
         if !references.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
 
                 ForEach(references) { ref in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(ref.title)
-                            .font(.subheadline.weight(.medium))
+                            .font(CipherStyle.Fonts.body(13, weight: .medium))
                         Text(ref.description)
-                            .font(.caption)
+                            .font(CipherStyle.Fonts.caption)
                             .foregroundStyle(.secondary)
                         if !ref.source.isEmpty {
                             Text(ref.source)
-                                .font(.caption2)
+                                .font(CipherStyle.Fonts.body(10))
                                 .foregroundStyle(.tertiary)
                         }
                     }

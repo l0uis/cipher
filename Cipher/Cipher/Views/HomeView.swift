@@ -7,27 +7,35 @@ struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var path = NavigationPath()
 
+    private let columns = [
+        GridItem(.flexible(), spacing: 20),
+        GridItem(.flexible(), spacing: 20)
+    ]
+
     var body: some View {
         NavigationStack(path: $path) {
             Group {
                 if scans.isEmpty {
                     emptyStateView
                 } else {
-                    scanListView
+                    scanGridView
                 }
             }
-            .navigationTitle("Cipher")
+            .background(CipherStyle.Colors.background.ignoresSafeArea())
+            .navigationTitle("Collection")
+            .toolbarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         viewModel.showingCapture = true
                     } label: {
                         Label("Scan", systemImage: "camera.viewfinder")
+                            .font(CipherStyle.Fonts.body(16))
                     }
                 }
             }
-            .sheet(isPresented: $viewModel.showingCapture) {
-                CaptureView()
+            .fullScreenCover(isPresented: $viewModel.showingCapture) {
+                CameraView()
             }
             .navigationDestination(for: PersistentIdentifier.self) { id in
                 if let scan = scans.first(where: { $0.persistentModelID == id }) {
@@ -50,16 +58,20 @@ struct HomeView: View {
         }
     }
 
-    private var scanListView: some View {
-        List {
-            ForEach(scans) { scan in
-                NavigationLink(value: scan.persistentModelID) {
-                    ScanCardView(scan: scan)
+    private var scanGridView: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 20) {
+                ForEach(scans) { scan in
+                    NavigationLink(value: scan.persistentModelID) {
+                        ScanCardView(scan: scan)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .onDelete(perform: deleteScans)
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
+            .padding(.bottom, 32)
         }
-        .listStyle(.plain)
     }
 
     private func deleteScans(at offsets: IndexSet) {
