@@ -1,6 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct DetailView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     let scan: PatternScan
     @State private var viewModel: DetailViewModel
 
@@ -10,24 +13,42 @@ struct DetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
-                headerSection
+        ScrollView(.vertical) {
+            LazyVStack(spacing: 0) {
+                // Page 1: Header
+                headerPage
 
                 if scan.analysisStatus == "analyzing" {
                     LoadingAnalysisView()
+                        .containerRelativeFrame(.vertical)
                 } else if scan.analysisStatus == "failed" {
-                    errorSection
+                    errorPage
                 } else if scan.analysisStatus == "completed" {
-                    analysisContent
+                    analysisPages
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 32)
+            .scrollTargetLayout()
         }
+        .scrollTargetBehavior(.paging)
+        .scrollIndicators(.hidden)
+        .ignoresSafeArea(edges: .bottom)
         .background(CipherStyle.Colors.background.ignoresSafeArea())
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button(role: .destructive) {
+                        deleteScan()
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 16))
+                }
+            }
+        }
         .task {
             await viewModel.loadImage()
         }
@@ -36,417 +57,451 @@ struct DetailView: View {
         }
     }
 
-    // MARK: - Header
-
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let image = viewModel.scanImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 280)
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-
-            if let name = scan.patternName {
-                Text(name)
-                    .font(CipherStyle.Fonts.title1)
-            }
-
-            if let origin = scan.patternOrigin {
-                Label(origin, systemImage: "mappin.and.ellipse")
-                    .font(CipherStyle.Fonts.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            Text(scan.capturedAt, format: .dateTime.month(.wide).day().year().hour().minute())
-                .font(CipherStyle.Fonts.caption)
-                .foregroundStyle(.tertiary)
+    private func deleteScan() {
+        Task {
+            await ImageStorageService.shared.deleteImage(fileName: scan.imageFileName)
         }
-        .padding(.bottom, 8)
+        modelContext.delete(scan)
+        dismiss()
     }
 
-    // MARK: - Error
+    // MARK: - Pages
 
-    private var errorSection: some View {
+    private var headerPage: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 0)
+
+            VStack(alignment: .leading, spacing: 16) {
+                if let image = viewModel.scanImage {
+                    Color.clear
+                        .aspectRatio(1, contentMode: .fit)
+                        .overlay {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                        }
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            .white.opacity(0.5),
+                                            .white.opacity(0.1),
+                                            .clear,
+                                            .white.opacity(0.08)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
+                }
+
+                if let name = scan.patternName {
+                    Text(name)
+                        .font(CipherStyle.Fonts.title1)
+                }
+
+                HStack(spacing: 16) {
+                    if let origin = scan.patternOrigin {
+                        Label(origin, systemImage: "mappin.and.ellipse")
+                            .font(CipherStyle.Fonts.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text(scan.capturedAt, format: .dateTime.month(.wide).day().year().hour().minute())
+                    .font(CipherStyle.Fonts.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 24)
+
+            Spacer(minLength: 0)
+
+            // Swipe hint
+            Image(systemName: "chevron.compact.down")
+                .font(.title2)
+                .foregroundStyle(.tertiary)
+                .padding(.bottom, 16)
+        }
+        .containerRelativeFrame(.vertical)
+    }
+
+    private var errorPage: some View {
         VStack(spacing: 12) {
+            Spacer()
             Image(systemName: "exclamationmark.triangle")
                 .font(.largeTitle)
                 .foregroundStyle(.red)
-
             Text("Analysis Failed")
                 .font(CipherStyle.Fonts.headline)
-
             if let error = scan.errorMessage {
                 Text(error)
                     .font(CipherStyle.Fonts.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
+            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
+        .padding(.horizontal, 24)
+        .containerRelativeFrame(.vertical)
     }
 
-    // MARK: - Analysis Content
-
-    private var analysisContent: some View {
-        VStack(spacing: 12) {
-            // 1. History & Origins
+    private var analysisPages: some View {
+        Group {
             if let data = viewModel.historyOrigins {
-                CategorySectionView(
-                    title: "History & Origins",
-                    icon: "clock.arrow.circlepath",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "History & Origins", icon: "clock.arrow.circlepath") {
                     historyContent(data)
                 }
             }
 
-            // 2. Symbols & Motifs
             if let data = viewModel.symbolsMotifs {
-                CategorySectionView(
-                    title: "Symbols & Motifs",
-                    icon: "star.circle",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Symbols & Motifs", icon: "star.circle") {
                     symbolsContent(data)
                 }
             }
 
-            // 3. Cultural References
             if let data = viewModel.culturalRefs {
-                CategorySectionView(
-                    title: "Cultural References",
-                    icon: "book.closed",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Cultural References", icon: "book.closed") {
                     culturalContent(data)
                 }
             }
 
-            // 4. Color Intelligence
             if let data = viewModel.colorIntel {
-                CategorySectionView(
-                    title: "Color Intelligence",
-                    icon: "paintpalette",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Color Intelligence", icon: "paintpalette") {
                     colorContent(data)
                 }
             }
 
-            // 5. Material & Technique
             if let data = viewModel.materialTech {
-                CategorySectionView(
-                    title: "Material & Technique",
-                    icon: "hand.draw",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Material & Technique", icon: "hand.draw") {
                     materialContent(data)
                 }
             }
 
-            // 6. Music, Film & Pop Culture
             if let data = viewModel.popCulture {
-                CategorySectionView(
-                    title: "Music, Film & Pop Culture",
-                    icon: "film",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Music, Film & Pop Culture", icon: "film") {
                     popCultureContent(data)
                 }
             }
 
-            // 7. Contemporary Relevance
             if let data = viewModel.contemporary {
-                CategorySectionView(
-                    title: "Contemporary Relevance",
-                    icon: "sparkles",
-                    summary: data.summary
-                ) {
+                categoryPage(title: "Contemporary Relevance", icon: "sparkles") {
                     contemporaryContent(data)
                 }
             }
 
-            // Enrichment
-            enrichmentSection
+            if !viewModel.metItems.isEmpty || !viewModel.europeanaItems.isEmpty {
+                enrichmentPage
+            }
         }
+    }
+
+    // MARK: - Category Page
+
+    private func categoryPage<Content: View>(
+        title: String,
+        icon: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Title
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(CipherStyle.Fonts.title2)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 16)
+
+            // Scrollable content within the page
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 12) {
+                    content()
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+            }
+        }
+        .containerRelativeFrame(.vertical)
     }
 
     // MARK: - Category Content Builders
 
     @ViewBuilder
     private func historyContent(_ data: HistoryOrigins) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            InfoRow(label: "Period", value: data.originPeriod)
-            InfoRow(label: "Geographic Origin", value: data.geographicOrigin)
-            InfoRow(label: "Cultural Origin", value: data.culturalOrigin)
+        InfoRow(label: "Period", value: data.originPeriod)
+        InfoRow(label: "Geographic Origin", value: data.geographicOrigin)
+        InfoRow(label: "Cultural Origin", value: data.culturalOrigin)
 
-            if !data.evolutionTimeline.isEmpty {
-                Text("Evolution Timeline")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                    .padding(.top, 4)
+        if !data.evolutionTimeline.isEmpty {
+            Text("Evolution Timeline")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+                .padding(.top, 4)
 
-                ForEach(data.evolutionTimeline) { entry in
-                    HStack(alignment: .top, spacing: 10) {
-                        Text(entry.period)
-                            .font(CipherStyle.Fonts.body(11, weight: .medium))
-                            .frame(width: 80, alignment: .leading)
-                        Text(entry.description)
-                            .font(CipherStyle.Fonts.caption)
-                            .foregroundStyle(.secondary)
-                    }
+            ForEach(data.evolutionTimeline) { entry in
+                HStack(alignment: .top, spacing: 10) {
+                    Text(entry.period)
+                        .font(CipherStyle.Fonts.body(11, weight: .medium))
+                        .frame(width: 80, alignment: .leading)
+                    Text(entry.description)
+                        .font(CipherStyle.Fonts.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
 
-            if !data.tradeAndColonialInfluences.isEmpty {
-                Text("Trade & Colonial Influences")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                    .padding(.top, 4)
-                BulletList(items: data.tradeAndColonialInfluences)
-            }
+        if !data.tradeAndColonialInfluences.isEmpty {
+            Text("Trade & Colonial Influences")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+                .padding(.top, 4)
+            BulletList(items: data.tradeAndColonialInfluences)
+        }
 
-            if !data.revivalMoments.isEmpty {
-                Text("Revival Moments")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                    .padding(.top, 4)
-                BulletList(items: data.revivalMoments)
-            }
+        if !data.revivalMoments.isEmpty {
+            Text("Revival Moments")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+                .padding(.top, 4)
+            BulletList(items: data.revivalMoments)
         }
     }
 
     @ViewBuilder
     private func symbolsContent(_ data: SymbolsMotifs) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            if !data.primaryMotifs.isEmpty {
-                Text("Primary Motifs")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
+        if !data.primaryMotifs.isEmpty {
+            Text("Primary Motifs")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
 
-                ForEach(data.primaryMotifs) { motif in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(motif.name)
-                            .font(CipherStyle.Fonts.body(13, weight: .medium))
-                        Text(motif.meaning)
-                            .font(CipherStyle.Fonts.caption)
-                            .foregroundStyle(.secondary)
-                        Text(motif.geometricDescription)
-                            .font(CipherStyle.Fonts.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.vertical, 2)
+            ForEach(data.primaryMotifs) { motif in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(motif.name)
+                        .font(CipherStyle.Fonts.body(13, weight: .medium))
+                    Text(motif.meaning)
+                        .font(CipherStyle.Fonts.caption)
+                        .foregroundStyle(.secondary)
+                    Text(motif.geometricDescription)
+                        .font(CipherStyle.Fonts.caption)
+                        .foregroundStyle(.tertiary)
                 }
+                .padding(.vertical, 2)
             }
+        }
 
-            InfoRow(label: "Sacred vs Decorative", value: data.sacredVsDecorative)
+        InfoRow(label: "Sacred vs Decorative", value: data.sacredVsDecorative)
 
-            if !data.hiddenMeanings.isEmpty {
-                Text("Hidden Meanings")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.hiddenMeanings)
-            }
+        if !data.hiddenMeanings.isEmpty {
+            Text("Hidden Meanings")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.hiddenMeanings)
+        }
 
-            if !data.crossCulturalOverlaps.isEmpty {
-                Text("Cross-Cultural Overlaps")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.crossCulturalOverlaps)
-            }
+        if !data.crossCulturalOverlaps.isEmpty {
+            Text("Cross-Cultural Overlaps")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.crossCulturalOverlaps)
+        }
 
-            if !data.mythologicalReferences.isEmpty {
-                Text("Mythological References")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.mythologicalReferences)
-            }
+        if !data.mythologicalReferences.isEmpty {
+            Text("Mythological References")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.mythologicalReferences)
         }
     }
 
     @ViewBuilder
     private func culturalContent(_ data: CulturalRefs) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            ReferenceList(title: "Literary References", references: data.literaryReferences)
-            ReferenceList(title: "Myths & Folklore", references: data.mythsAndFolklore)
-            ReferenceList(title: "Artworks", references: data.artworks)
+        ReferenceList(title: "Literary References", references: data.literaryReferences)
+        ReferenceList(title: "Myths & Folklore", references: data.mythsAndFolklore)
+        ReferenceList(title: "Artworks", references: data.artworks)
 
-            if !data.museumCollections.isEmpty {
-                Text("Museum Collections")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.museumCollections)
-            }
+        if !data.museumCollections.isEmpty {
+            Text("Museum Collections")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.museumCollections)
+        }
 
-            if !data.fashionReinterpretations.isEmpty {
-                Text("Fashion Reinterpretations")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.fashionReinterpretations)
-            }
+        if !data.fashionReinterpretations.isEmpty {
+            Text("Fashion Reinterpretations")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.fashionReinterpretations)
         }
     }
 
     @ViewBuilder
     private func colorContent(_ data: ColorIntel) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            if !data.dominantColors.isEmpty {
-                Text("Dominant Colors")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
+        if !data.dominantColors.isEmpty {
+            Text("Dominant Colors")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
 
-                ForEach(data.dominantColors) { color in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(color.color)
-                            .font(CipherStyle.Fonts.body(13, weight: .medium))
-                        Text("Symbolism: \(color.symbolism)")
-                            .font(CipherStyle.Fonts.caption)
-                            .foregroundStyle(.secondary)
-                        Text("Cultural: \(color.culturalMeaning)")
-                            .font(CipherStyle.Fonts.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.vertical, 2)
+            ForEach(data.dominantColors) { color in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(color.color)
+                        .font(CipherStyle.Fonts.body(13, weight: .medium))
+                    Text("Symbolism: \(color.symbolism)")
+                        .font(CipherStyle.Fonts.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Cultural: \(color.culturalMeaning)")
+                        .font(CipherStyle.Fonts.caption)
+                        .foregroundStyle(.tertiary)
                 }
+                .padding(.vertical, 2)
             }
-
-            if !data.emotionalAssociations.isEmpty {
-                Text("Emotional Associations")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.emotionalAssociations)
-            }
-
-            InfoRow(label: "Dye History", value: data.dyeHistory)
-
-            if !data.statusMarkers.isEmpty {
-                Text("Status Markers")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.statusMarkers)
-            }
-
-            InfoRow(label: "Meaning Evolution", value: data.meaningEvolution)
         }
+
+        if !data.emotionalAssociations.isEmpty {
+            Text("Emotional Associations")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.emotionalAssociations)
+        }
+
+        InfoRow(label: "Dye History", value: data.dyeHistory)
+
+        if !data.statusMarkers.isEmpty {
+            Text("Status Markers")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.statusMarkers)
+        }
+
+        InfoRow(label: "Meaning Evolution", value: data.meaningEvolution)
     }
 
     @ViewBuilder
     private func materialContent(_ data: MaterialTech) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            InfoRow(label: "Textile Type", value: data.textileType)
-            InfoRow(label: "Weaving Technique", value: data.weavingTechnique)
-            InfoRow(label: "Handcrafted vs Industrial", value: data.handcraftedVsIndustrial)
+        InfoRow(label: "Textile Type", value: data.textileType)
+        InfoRow(label: "Weaving Technique", value: data.weavingTechnique)
+        InfoRow(label: "Handcrafted vs Industrial", value: data.handcraftedVsIndustrial)
 
-            if !data.regionSpecificTechniques.isEmpty {
-                Text("Region-Specific Techniques")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.regionSpecificTechniques)
-            }
-
-            InfoRow(label: "Labor & Social History", value: data.laborAndSocialHistory)
-            InfoRow(label: "Sustainability", value: data.sustainabilityNotes)
+        if !data.regionSpecificTechniques.isEmpty {
+            Text("Region-Specific Techniques")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.regionSpecificTechniques)
         }
+
+        InfoRow(label: "Labor & Social History", value: data.laborAndSocialHistory)
+        InfoRow(label: "Sustainability", value: data.sustainabilityNotes)
     }
 
     @ViewBuilder
     private func popCultureContent(_ data: PopCultureRefs) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            ReferenceList(title: "Songs", references: data.songs)
-            ReferenceList(title: "Films & Characters", references: data.filmsAndCharacters)
+        ReferenceList(title: "Songs", references: data.songs)
+        ReferenceList(title: "Films & Characters", references: data.filmsAndCharacters)
 
-            if !data.subcultures.isEmpty {
-                Text("Subcultures")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.subcultures)
-            }
+        if !data.subcultures.isEmpty {
+            Text("Subcultures")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.subcultures)
+        }
 
-            if !data.popHistoryMoments.isEmpty {
-                Text("Pop History Moments")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.popHistoryMoments)
-            }
+        if !data.popHistoryMoments.isEmpty {
+            Text("Pop History Moments")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.popHistoryMoments)
+        }
 
-            if !data.notableArtists.isEmpty {
-                Text("Notable Artists")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.notableArtists)
-            }
+        if !data.notableArtists.isEmpty {
+            Text("Notable Artists")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.notableArtists)
         }
     }
 
     @ViewBuilder
     private func contemporaryContent(_ data: ContemporaryRel) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(data.summary)
-                .font(CipherStyle.Fonts.subheadline)
+        Text(data.summary)
+            .font(CipherStyle.Fonts.subheadline)
 
-            ReferenceList(title: "Designer Reinterpretations", references: data.designerReinterpretations)
+        ReferenceList(title: "Designer Reinterpretations", references: data.designerReinterpretations)
 
-            if !data.politicalSocialReclaiming.isEmpty {
-                Text("Political & Social Reclaiming")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.politicalSocialReclaiming)
-            }
+        if !data.politicalSocialReclaiming.isEmpty {
+            Text("Political & Social Reclaiming")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.politicalSocialReclaiming)
+        }
 
-            InfoRow(label: "Trend Forecast", value: data.trendForecast)
-            InfoRow(label: "Why It Resonates Now", value: data.whyItResonatesNow)
+        InfoRow(label: "Trend Forecast", value: data.trendForecast)
+        InfoRow(label: "Why It Resonates Now", value: data.whyItResonatesNow)
 
-            if !data.controversies.isEmpty {
-                Text("Controversies & Debates")
-                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                BulletList(items: data.controversies)
-            }
+        if !data.controversies.isEmpty {
+            Text("Controversies & Debates")
+                .font(CipherStyle.Fonts.body(13, weight: .semibold))
+            BulletList(items: data.controversies)
         }
     }
 
-    // MARK: - Enrichment Section
+    // MARK: - Enrichment Page
 
-    @ViewBuilder
-    private var enrichmentSection: some View {
-        if !viewModel.metItems.isEmpty || !viewModel.europeanaItems.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
+    private var enrichmentPage: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                Image(systemName: "building.columns")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.secondary)
                 Text("Related Museum Pieces")
-                    .font(CipherStyle.Fonts.title3)
-                    .padding(.top, 8)
+                    .font(CipherStyle.Fonts.title2)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, 16)
 
-                if !viewModel.metItems.isEmpty {
-                    Text("The Metropolitan Museum of Art")
-                        .font(CipherStyle.Fonts.body(11, weight: .medium))
-                        .foregroundStyle(.secondary)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+                    if !viewModel.metItems.isEmpty {
+                        Text("The Metropolitan Museum of Art")
+                            .font(CipherStyle.Fonts.body(11, weight: .medium))
+                            .foregroundStyle(.secondary)
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(viewModel.metItems) { item in
-                                MetMuseumCardView(item: item)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(viewModel.metItems) { item in
+                                    MetMuseumCardView(item: item)
+                                }
+                            }
+                        }
+                    }
+
+                    if !viewModel.europeanaItems.isEmpty {
+                        Text("Europeana Collection")
+                            .font(CipherStyle.Fonts.body(11, weight: .medium))
+                            .foregroundStyle(.secondary)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(viewModel.europeanaItems) { item in
+                                    EuropeanaCardView(item: item)
+                                }
                             }
                         }
                     }
                 }
-
-                if !viewModel.europeanaItems.isEmpty {
-                    Text("Europeana Collection")
-                        .font(CipherStyle.Fonts.body(11, weight: .medium))
-                        .foregroundStyle(.secondary)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(viewModel.europeanaItems) { item in
-                                EuropeanaCardView(item: item)
-                            }
-                        }
-                    }
-                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
             }
         }
+        .containerRelativeFrame(.vertical)
     }
 }

@@ -1,6 +1,8 @@
 import Foundation
 
 enum AppConstants {
+    static let appGroupIdentifier = "group.com.louiscurrie.Cipher"
+
     enum API {
         // Backend server URL - change to your deployed URL in production
         static let serverBaseURL = "https://cipher-production-def0.up.railway.app"

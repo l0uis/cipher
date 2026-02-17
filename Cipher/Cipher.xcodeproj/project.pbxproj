@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		36F043BD2F434DE200BA0305 /* CipherShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 36F043B32F434DE200BA0305 /* CipherShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		369FFA8E2F3A60B700EC1695 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +25,34 @@
 			remoteGlobalIDString = 369FFA7B2F3A60B600EC1695;
 			remoteInfo = Cipher;
 		};
+		36F043BB2F434DE200BA0305 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 369FFA742F3A60B600EC1695 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 36F043B22F434DE200BA0305;
+			remoteInfo = CipherShare;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		36F043C22F434DE200BA0305 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				36F043BD2F434DE200BA0305 /* CipherShare.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		369FFA7C2F3A60B600EC1695 /* Cipher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cipher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369FFA8D2F3A60B700EC1695 /* CipherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CipherTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369FFA972F3A60B700EC1695 /* CipherUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CipherUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36F043B32F434DE200BA0305 /* CipherShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CipherShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +62,13 @@
 				Info.plist,
 			);
 			target = 369FFA7B2F3A60B600EC1695 /* Cipher */;
+		};
+		36F043C12F434DE200BA0305 /* Exceptions for "CipherShare" folder in "CipherShare" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 36F043B22F434DE200BA0305 /* CipherShare */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -56,6 +89,14 @@
 		369FFA9A2F3A60B700EC1695 /* CipherUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CipherUITests;
+			sourceTree = "<group>";
+		};
+		36F043B42F434DE200BA0305 /* CipherShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				36F043C12F434DE200BA0305 /* Exceptions for "CipherShare" folder in "CipherShare" target */,
+			);
+			path = CipherShare;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -82,6 +123,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		36F043B02F434DE200BA0305 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -91,6 +139,7 @@
 				369FFA7E2F3A60B600EC1695 /* Cipher */,
 				369FFA902F3A60B700EC1695 /* CipherTests */,
 				369FFA9A2F3A60B700EC1695 /* CipherUITests */,
+				36F043B42F434DE200BA0305 /* CipherShare */,
 				369FFA7D2F3A60B600EC1695 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +150,7 @@
 				369FFA7C2F3A60B600EC1695 /* Cipher.app */,
 				369FFA8D2F3A60B700EC1695 /* CipherTests.xctest */,
 				369FFA972F3A60B700EC1695 /* CipherUITests.xctest */,
+				36F043B32F434DE200BA0305 /* CipherShare.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,10 +165,12 @@
 				369FFA782F3A60B600EC1695 /* Sources */,
 				369FFA792F3A60B600EC1695 /* Frameworks */,
 				369FFA7A2F3A60B600EC1695 /* Resources */,
+				36F043C22F434DE200BA0305 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				36F043BC2F434DE200BA0305 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				369FFA7E2F3A60B600EC1695 /* Cipher */,
@@ -176,6 +228,28 @@
 			productReference = 369FFA972F3A60B700EC1695 /* CipherUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		36F043B22F434DE200BA0305 /* CipherShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36F043BE2F434DE200BA0305 /* Build configuration list for PBXNativeTarget "CipherShare" */;
+			buildPhases = (
+				36F043AF2F434DE200BA0305 /* Sources */,
+				36F043B02F434DE200BA0305 /* Frameworks */,
+				36F043B12F434DE200BA0305 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				36F043B42F434DE200BA0305 /* CipherShare */,
+			);
+			name = CipherShare;
+			packageProductDependencies = (
+			);
+			productName = CipherShare;
+			productReference = 36F043B32F434DE200BA0305 /* CipherShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,6 +271,9 @@
 						CreatedOnToolsVersion = 26.2;
 						TestTargetID = 369FFA7B2F3A60B600EC1695;
 					};
+					36F043B22F434DE200BA0305 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 				};
 			};
 			buildConfigurationList = 369FFA772F3A60B600EC1695 /* Build configuration list for PBXProject "Cipher" */;
@@ -216,6 +293,7 @@
 				369FFA7B2F3A60B600EC1695 /* Cipher */,
 				369FFA8C2F3A60B700EC1695 /* CipherTests */,
 				369FFA962F3A60B700EC1695 /* CipherUITests */,
+				36F043B22F434DE200BA0305 /* CipherShare */,
 			);
 		};
 /* End PBXProject section */
@@ -236,6 +314,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		369FFA952F3A60B700EC1695 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36F043B12F434DE200BA0305 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -266,6 +351,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		36F043AF2F434DE200BA0305 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -279,6 +371,11 @@
 			target = 369FFA7B2F3A60B600EC1695 /* Cipher */;
 			targetProxy = 369FFA982F3A60B700EC1695 /* PBXContainerItemProxy */;
 		};
+		36F043BC2F434DE200BA0305 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 36F043B22F434DE200BA0305 /* CipherShare */;
+			targetProxy = 36F043BB2F434DE200BA0305 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -287,6 +384,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Cipher/Cipher.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SUD7RHBW66;
@@ -332,6 +430,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Cipher/Cipher.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SUD7RHBW66;
@@ -590,6 +689,67 @@
 			};
 			name = Release;
 		};
+		36F043BF2F434DE200BA0305 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SUD7RHBW66;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CipherShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CipherShare/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.louiscurrie.Cipher.CipherShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		36F043C02F434DE200BA0305 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = SUD7RHBW66;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CipherShare/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = CipherShare/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.louiscurrie.Cipher.CipherShare;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -625,6 +785,15 @@
 			buildConfigurations = (
 				369FFAA92F3A60B700EC1695 /* Debug */,
 				369FFAAA2F3A60B700EC1695 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		36F043BE2F434DE200BA0305 /* Build configuration list for PBXNativeTarget "CipherShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36F043BF2F434DE200BA0305 /* Debug */,
+				36F043C02F434DE200BA0305 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

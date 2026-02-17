@@ -5,8 +5,33 @@ actor ImageStorageService {
     static let shared = ImageStorageService()
 
     private var imagesDirectory: URL {
+        let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppConstants.appGroupIdentifier
+        ) ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return container.appendingPathComponent(AppConstants.Image.scanImageDirectory)
+    }
+
+    private var legacyImagesDirectory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent(AppConstants.Image.scanImageDirectory)
+    }
+
+    func migrateIfNeeded() {
+        let legacy = legacyImagesDirectory
+        let shared = imagesDirectory
+        guard legacy != shared,
+              FileManager.default.fileExists(atPath: legacy.path) else { return }
+
+        try? FileManager.default.createDirectory(at: shared, withIntermediateDirectories: true)
+
+        guard let files = try? FileManager.default.contentsOfDirectory(atPath: legacy.path) else { return }
+        for file in files {
+            let src = legacy.appendingPathComponent(file)
+            let dst = shared.appendingPathComponent(file)
+            guard !FileManager.default.fileExists(atPath: dst.path) else { continue }
+            try? FileManager.default.copyItem(at: src, to: dst)
+        }
+        try? FileManager.default.removeItem(at: legacy)
     }
 
     func saveImage(_ image: UIImage) throws -> String {
@@ -16,6 +41,15 @@ actor ImageStorageService {
         guard let data = resized.jpegData(compressionQuality: AppConstants.Image.jpegCompressionQuality) else {
             throw ImageStorageError.compressionFailed
         }
+
+        let fileName = "\(UUID().uuidString).jpg"
+        let fileURL = imagesDirectory.appendingPathComponent(fileName)
+        try data.write(to: fileURL)
+        return fileName
+    }
+
+    func saveImageData(_ data: Data) throws -> String {
+        try FileManager.default.createDirectory(at: imagesDirectory, withIntermediateDirectories: true)
 
         let fileName = "\(UUID().uuidString).jpg"
         let fileURL = imagesDirectory.appendingPathComponent(fileName)

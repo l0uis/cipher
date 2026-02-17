@@ -32,6 +32,17 @@
 		<string>REM-VariableFont_wght.ttf</string>
 		<string>REM-Italic-VariableFont_wght.ttf</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cipher</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.louiscurrie.Cipher</string>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

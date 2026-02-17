@@ -40,7 +40,22 @@ struct CipherApp: App {
             PatternScan.self,
             AnalysisResult.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        // Use App Group container if available, fall back to default
+        let hasAppGroup = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppConstants.appGroupIdentifier
+        ) != nil
+
+        let modelConfiguration: ModelConfiguration
+        if hasAppGroup {
+            modelConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                groupContainer: .identifier(AppConstants.appGroupIdentifier)
+            )
+        } else {
+            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        }
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
@@ -61,6 +76,9 @@ struct CipherApp: App {
                         .zIndex(1)
                 }
             }
+            .task {
+                await ImageStorageService.shared.migrateIfNeeded()
+            }
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     withAnimation(.easeOut(duration: 0.4)) {
@@ -70,5 +88,6 @@ struct CipherApp: App {
             }
         }
         .modelContainer(sharedModelContainer)
+        .handlesExternalEvents(matching: ["cipher"])
     }
 }
