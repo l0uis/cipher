@@ -29,11 +29,23 @@ RULES
 - Total text across all fields should stay under 250 words where possible.
 - Prioritize accuracy and cultural specificity over completeness.
 
-Return this exact JSON structure:
+Return this exact JSON structure. ALL fields are REQUIRED — do not omit any.
 {
   "pattern_name": "e.g. Persian Herati",
   "pattern_origin": "e.g. Isfahan, Iran",
   "confidence_note": "your confidence level",
+  "cultural_shifts": {
+    "summary": "2 short paragraphs on how this pattern moved between social classes, power structures, and subcultures (aristocracy, military, working class, counterculture, colonial trade, religion). Max 180 words.",
+    "revival_cycles": ["max 4 key revival moments, e.g. Clan identity, Victorian romanticism, Punk rebellion, Luxury branding"],
+    "synthesis": "One closing sentence synthesizing the pattern's social journey"
+  },
+  "pattern_profile": [
+    {"name": "Heritage", "score": 4},
+    {"name": "Authority", "score": 3},
+    {"name": "Rebellion", "score": 2},
+    {"name": "Formality", "score": 5},
+    {"name": "Structure", "score": 4}
+  ],
   "history_and_origins": {
     "summary": "2-3 sentences",
     "origin_period": "when",
@@ -61,7 +73,7 @@ Return this exact JSON structure:
   },
   "color_intelligence": {
     "summary": "2-3 sentences",
-    "dominant_colors": [{"color": "name", "symbolism": "brief", "cultural_meaning": "brief"}],
+    "dominant_colors": [{"color": "name", "hex_color": "#8B0000", "symbolism": "brief", "cultural_meaning": "brief", "emotional_keywords": ["keyword1", "keyword2", "keyword3"]}],
     "emotional_associations": ["brief items"],
     "dye_history": "1-2 sentences",
     "status_markers": ["brief items"],
@@ -74,7 +86,9 @@ Return this exact JSON structure:
     "handcrafted_vs_industrial": "brief",
     "region_specific_techniques": ["brief items"],
     "labor_and_social_history": "1-2 sentences",
-    "sustainability_notes": "1-2 sentences"
+    "sustainability_notes": "1-2 sentences",
+    "did_you_know": "One surprising, tactile, or little-known fact about how this specific textile is made. Keep it vivid and specific — something a textile designer would find fascinating.",
+    "material_image_query": "A short Wikimedia Commons search query (2-4 words) to find an image of this material being made or the raw materials, e.g. 'handloom weaving wool' or 'silk dyeing vat' or 'jacquard loom textile'"
   },
   "music_film_pop_culture": {
     "summary": "2-3 sentences",
@@ -92,7 +106,9 @@ Return this exact JSON structure:
     "why_it_resonates_now": "1-2 sentences",
     "controversies": ["brief items"]
   }
-}`;
+}
+
+CRITICAL: pattern_profile and cultural_shifts MUST be included — they appear near the top of the schema for a reason. pattern_profile MUST contain exactly 5 entries. Pick the 5 most relevant from: Heritage, Structure, Ornamentation, Authority, Subversion, Fluidity, Rebellion, Playfulness, Formality, Spirituality, Minimalism, Opulence. Score each 1-5.`;
 
 // POST /api/analyze - Submit image, returns job ID immediately
 app.post("/api/analyze", async (req, res) => {
@@ -143,7 +159,7 @@ async function processAnalysis(jobId, imageBase64) {
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: SYSTEM_PROMPT,
     messages: [
       {
@@ -159,7 +175,7 @@ async function processAnalysis(jobId, imageBase64) {
           },
           {
             type: "text",
-            text: "Analyze this textile/carpet pattern. JSON only.",
+            text: "Analyze this textile/carpet pattern. Return JSON only. IMPORTANT: You must include the cultural_shifts object and pattern_profile array (5 scored attributes) — these are required.",
           },
         ],
       },
@@ -179,7 +195,31 @@ async function processAnalysis(jobId, imageBase64) {
   }
 
   const analysis = JSON.parse(jsonText);
-  console.log(`Job ${jobId}: Complete - ${analysis.pattern_name}`);
+  const keys = Object.keys(analysis);
+  console.log(`Job ${jobId}: Complete - ${analysis.pattern_name} | Keys: ${keys.join(", ")}`);
+  console.log(`Job ${jobId}: cultural_shifts: ${analysis.cultural_shifts ? "YES" : "MISSING"}, pattern_profile: ${analysis.pattern_profile ? `YES (${analysis.pattern_profile.length} items)` : "MISSING"}`);
+
+  // Guarantee cultural_shifts exists
+  if (!analysis.cultural_shifts) {
+    console.log(`Job ${jobId}: Adding fallback cultural_shifts`);
+    analysis.cultural_shifts = {
+      summary: analysis.contemporary_relevance?.summary || analysis.history_and_origins?.summary || "",
+      revival_cycles: analysis.history_and_origins?.revival_moments || [],
+      synthesis: analysis.contemporary_relevance?.why_it_resonates_now || "",
+    };
+  }
+
+  // Guarantee pattern_profile exists with 5 entries
+  if (!analysis.pattern_profile || !Array.isArray(analysis.pattern_profile) || analysis.pattern_profile.length === 0) {
+    console.log(`Job ${jobId}: Adding fallback pattern_profile`);
+    analysis.pattern_profile = [
+      { name: "Heritage", score: 3 },
+      { name: "Structure", score: 3 },
+      { name: "Formality", score: 3 },
+      { name: "Ornamentation", score: 3 },
+      { name: "Spirituality", score: 3 },
+    ];
+  }
 
   jobs.set(jobId, { status: "completed", result: analysis });
 

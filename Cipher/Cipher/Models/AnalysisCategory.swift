@@ -13,6 +13,8 @@ struct PatternAnalysisResponse: Codable {
     let materialAndTechnique: MaterialTech
     let musicFilmPopCulture: PopCultureRefs
     let contemporaryRelevance: ContemporaryRel
+    var culturalShifts: CulturalShifts? = nil
+    var patternProfile: [PatternProfileAttribute]? = nil
 }
 
 // MARK: - History & Origins
@@ -85,8 +87,10 @@ struct ColorIntel: Codable {
 
 struct ColorEntry: Codable, Identifiable {
     let color: String
+    var hexColor: String? = nil
     let symbolism: String
     let culturalMeaning: String
+    var emotionalKeywords: [String]? = nil
 
     var id: String { color }
 }
@@ -101,6 +105,8 @@ struct MaterialTech: Codable {
     let regionSpecificTechniques: [String]
     let laborAndSocialHistory: String
     let sustainabilityNotes: String
+    var didYouKnow: String? = nil
+    var materialImageQuery: String? = nil
 }
 
 // MARK: - Music, Film & Pop Culture
@@ -123,4 +129,21 @@ struct ContemporaryRel: Codable {
     let trendForecast: String
     let whyItResonatesNow: String
     let controversies: [String]
+}
+
+// MARK: - Cultural Shifts (Card 3)
+
+struct CulturalShifts: Codable {
+    let summary: String
+    let revivalCycles: [String]
+    let synthesis: String
+}
+
+// MARK: - Pattern Profile (Visual Meter)
+
+struct PatternProfileAttribute: Codable, Identifiable {
+    let name: String
+    let score: Int
+
+    var id: String { name }
 }

@@ -6,9 +6,13 @@ actor ClaudeAPIService {
     private let pollingInterval: UInt64 = 3_000_000_000 // 3 seconds
     private let maxPollingAttempts = 60 // 3 minutes max (60 * 3s)
 
-    func analyzePattern(imageData: Data, mediaType: String = "image/jpeg") async throws -> PatternAnalysisResponse {
+    func analyzePattern(
+        imageData: Data,
+        mediaType: String = "image/jpeg",
+        onPolling: ((Int) async -> Void)? = nil
+    ) async throws -> PatternAnalysisResponse {
         let jobId = try await submitAnalysis(imageData: imageData)
-        return try await pollForResult(jobId: jobId)
+        return try await pollForResult(jobId: jobId, onPolling: onPolling)
     }
 
     private func submitAnalysis(imageData: Data) async throws -> String {
@@ -25,9 +29,10 @@ actor ClaudeAPIService {
         return response.jobId
     }
 
-    private func pollForResult(jobId: String) async throws -> PatternAnalysisResponse {
-        for _ in 0..<maxPollingAttempts {
+    private func pollForResult(jobId: String, onPolling: ((Int) async -> Void)? = nil) async throws -> PatternAnalysisResponse {
+        for attempt in 0..<maxPollingAttempts {
             try await Task.sleep(nanoseconds: pollingInterval)
+            await onPolling?(attempt)
 
             var request = URLRequest(url: URL(string: "\(AppConstants.API.serverBaseURL)/api/analyze/\(jobId)")!)
             request.httpMethod = "GET"

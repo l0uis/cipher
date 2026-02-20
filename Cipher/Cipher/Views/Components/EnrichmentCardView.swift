@@ -2,97 +2,105 @@ import SwiftUI
 
 struct MetMuseumCardView: View {
     let item: MetMuseumItem
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let imageURL = item.primaryImageSmall, let url = URL(string: imageURL) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Rectangle()
-                        .fill(.quaternary)
+        Button {
+            if let urlString = item.objectURL, let url = URL(string: urlString) {
+                openURL(url)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                if let imageURL = item.primaryImageSmall, let url = URL(string: imageURL) {
+                    Color.clear
+                        .aspectRatio(4.0/3.0, contentMode: .fit)
                         .overlay {
-                            ProgressView()
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Rectangle()
+                                    .fill(.white.opacity(0.04))
+                            }
                         }
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
 
-            Text(item.title)
-                .font(.subheadline.weight(.medium))
-                .lineLimit(2)
+                Text(item.title)
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
+                    .foregroundStyle(CipherStyle.Colors.primaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-            if let artist = item.artistDisplayName, !artist.isEmpty {
-                Text(artist)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                if let date = item.objectDate, !date.isEmpty {
-                    Text(date)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-                if let culture = item.culture, !culture.isEmpty {
-                    Text(culture)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let date = item.objectDate, !date.isEmpty {
+                        Text(date)
+                            .font(CipherStyle.Fonts.body(11))
+                            .foregroundStyle(.secondary)
+                    }
+                    if let culture = item.culture, !culture.isEmpty {
+                        Text(culture)
+                            .font(CipherStyle.Fonts.body(11))
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .frame(width: 180)
         }
-        .frame(width: 160)
-        .padding(10)
-        .background(.background)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+        .buttonStyle(.plain)
     }
 }
 
 struct EuropeanaCardView: View {
     let item: EuropeanaItem
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let preview = item.edmPreview?.first, let url = URL(string: preview) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    Rectangle()
-                        .fill(.quaternary)
+        Button {
+            if let urlString = item.guid, let url = URL(string: urlString) {
+                openURL(url)
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                if let preview = item.edmPreview?.first, let url = URL(string: preview) {
+                    Color.clear
+                        .aspectRatio(4.0/3.0, contentMode: .fit)
                         .overlay {
-                            ProgressView()
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Rectangle()
+                                    .fill(.white.opacity(0.04))
+                            }
                         }
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
 
-            Text(item.title?.first ?? "Untitled")
-                .font(.subheadline.weight(.medium))
-                .lineLimit(2)
+                Text(item.title?.first ?? "Untitled")
+                    .font(CipherStyle.Fonts.body(13, weight: .semibold))
+                    .foregroundStyle(CipherStyle.Colors.primaryText)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-            if let creator = item.dcCreator?.first {
-                Text(creator)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let year = item.year?.first {
+                        Text(year)
+                            .font(CipherStyle.Fonts.body(11))
+                            .foregroundStyle(.secondary)
+                    }
+                    if let provider = item.dataProvider?.first {
+                        Text(provider)
+                            .font(CipherStyle.Fonts.body(11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
             }
-
-            if let year = item.year?.first {
-                Text(year)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+            .frame(width: 180)
         }
-        .frame(width: 160)
-        .padding(10)
-        .background(.background)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.06), radius: 3, y: 1)
+        .buttonStyle(.plain)
     }
 }

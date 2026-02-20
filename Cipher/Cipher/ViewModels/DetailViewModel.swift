@@ -12,10 +12,14 @@ class DetailViewModel {
     var popCulture: PopCultureRefs?
     var contemporary: ContemporaryRel?
 
+    var culturalShifts: CulturalShifts?
+    var patternProfile: [PatternProfileAttribute] = []
+
     var metItems: [MetMuseumItem] = []
     var europeanaItems: [EuropeanaItem] = []
 
     var scanImage: UIImage?
+    var materialImageURL: URL?
 
     init(scan: PatternScan) {
         self.scan = scan
@@ -26,10 +30,44 @@ class DetailViewModel {
         scanImage = await ImageStorageService.shared.loadImage(fileName: scan.imageFileName)
     }
 
+    func loadMaterialImage() async {
+        let query = materialTech?.materialImageQuery
+            ?? materialTech.map { "\($0.textileType) \($0.weavingTechnique) textile" }
+        guard let query else { return }
+        materialImageURL = await searchWikimediaImage(query: query)
+    }
+
     func refreshIfNeeded() {
         if scan.analysisStatus == "completed" && historyOrigins == nil {
             decodeAllCategories()
         }
+    }
+
+    private func searchWikimediaImage(query: String) async -> URL? {
+        var components = URLComponents(string: "https://commons.wikimedia.org/w/api.php")!
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "query"),
+            URLQueryItem(name: "generator", value: "search"),
+            URLQueryItem(name: "gsrsearch", value: query),
+            URLQueryItem(name: "gsrnamespace", value: "6"),
+            URLQueryItem(name: "prop", value: "imageinfo"),
+            URLQueryItem(name: "iiprop", value: "url"),
+            URLQueryItem(name: "iiurlwidth", value: "800"),
+            URLQueryItem(name: "format", value: "json"),
+            URLQueryItem(name: "gsrlimit", value: "1"),
+        ]
+        guard let url = components.url,
+              let (data, _) = try? await URLSession.shared.data(from: url),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let queryResult = json["query"] as? [String: Any],
+              let pages = queryResult["pages"] as? [String: Any],
+              let firstPage = pages.values.first as? [String: Any],
+              let imageinfo = firstPage["imageinfo"] as? [[String: Any]],
+              let firstInfo = imageinfo.first,
+              let thumburl = firstInfo["thumburl"] as? String else {
+            return nil
+        }
+        return URL(string: thumburl)
     }
 
     private func decodeAllCategories() {
@@ -45,6 +83,16 @@ class DetailViewModel {
         materialTech = decode(result.materialAndTechnique, as: MaterialTech.self, decoder: decoder)
         popCulture = decode(result.musicFilmPopCulture, as: PopCultureRefs.self, decoder: decoder)
         contemporary = decode(result.contemporaryRelevance, as: ContemporaryRel.self, decoder: decoder)
+
+        culturalShifts = decode(result.culturalShifts, as: CulturalShifts.self, decoder: decoder)
+        if result.culturalShifts != nil && culturalShifts == nil {
+            print("[Cipher] culturalShifts JSON present but decode failed: \(result.culturalShifts?.prefix(200) ?? "")")
+        }
+        patternProfile = decode(result.patternProfile, as: [PatternProfileAttribute].self, decoder: decoder) ?? []
+        if result.patternProfile != nil && patternProfile.isEmpty {
+            print("[Cipher] patternProfile JSON present but decode failed: \(result.patternProfile?.prefix(200) ?? "")")
+        }
+        print("[Cipher] Decoded — culturalShifts: \(culturalShifts != nil), patternProfile: \(patternProfile.count) items")
 
         metItems = decode(result.metMuseumResults, as: [MetMuseumItem].self, decoder: decoder) ?? []
         europeanaItems = decode(result.europeanaResults, as: [EuropeanaItem].self, decoder: decoder) ?? []

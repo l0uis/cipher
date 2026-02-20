@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.louiscurrie.Cipher</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cipher</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
@@ -15,16 +26,10 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Cipher connects to the analysis server on your local network.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>Cipher uses the camera to photograph carpet and textile patterns for cultural analysis.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Cipher accesses your photo library to select textile and carpet patterns for analysis.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>SortsMillGoudy-Regular.ttf</string>
@@ -32,25 +37,10 @@
 		<string>REM-VariableFont_wght.ttf</string>
 		<string>REM-Italic-VariableFont_wght.ttf</string>
 	</array>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>cipher</string>
-			</array>
-			<key>CFBundleURLName</key>
-			<string>com.louiscurrie.Cipher</string>
-		</dict>
-	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
 		<string>CipherBackground</string>
 	</dict>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 </dict>
 </plist>

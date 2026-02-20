@@ -9,6 +9,7 @@ final class PatternScan {
     var patternName: String?
     var patternOrigin: String?
     var analysisStatus: String
+    var analysisStage: String?
     var errorMessage: String?
 
     @Relationship(deleteRule: .cascade)

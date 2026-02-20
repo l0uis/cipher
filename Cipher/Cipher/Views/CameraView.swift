@@ -338,9 +338,14 @@ struct CameraView: View {
 
     private func processSelectedPhoto() async {
         guard let item = selectedPhotoItem else { return }
-        guard let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else { return }
-        camera.capturedImage = image
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self) else { return }
+            guard let image = UIImage(data: data) else { return }
+            camera.capturedImage = image
+            camera.stop()
+        } catch {
+            errorMessage = "Failed to load photo"
+        }
     }
 
     private func analyzeImage() async {

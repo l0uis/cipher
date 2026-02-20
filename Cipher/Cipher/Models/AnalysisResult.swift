@@ -16,6 +16,10 @@ final class AnalysisResult {
     var musicFilmPopCulture: String?
     var contemporaryRelevance: String?
 
+    // Card 3
+    var culturalShifts: String?
+    var patternProfile: String?
+
     // Enrichment data from external APIs
     var metMuseumResults: String?
     var europeanaResults: String?

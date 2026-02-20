@@ -6,21 +6,40 @@ struct HomeView: View {
     @Query(sort: \PatternScan.capturedAt, order: .reverse) private var scans: [PatternScan]
     @State private var viewModel = HomeViewModel()
     @State private var path = NavigationPath()
+    @State private var showOverlay = false
+    @State private var completedScanID: PersistentIdentifier?
 
     private let columns = [
         GridItem(.flexible(), spacing: 20),
         GridItem(.flexible(), spacing: 20)
     ]
 
+    private var analyzingScan: PatternScan? {
+        scans.first { $0.analysisStatus == "analyzing" }
+    }
+
+    private var displayedScans: [PatternScan] {
+        scans.filter { $0.analysisStatus != "analyzing" }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
-            Group {
-                if scans.isEmpty {
-                    emptyStateView
-                } else {
-                    scanGridView
+            ZStack(alignment: .bottom) {
+                Group {
+                    if displayedScans.isEmpty && analyzingScan == nil {
+                        emptyStateView
+                    } else {
+                        scanGridView
+                    }
+                }
+
+                // Mini-player overlay
+                if let scan = analyzingScan {
+                    AnalyzingOverlayView(scan: scan)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .animation(.easeInOut(duration: 0.35), value: analyzingScan?.persistentModelID)
             .background(CipherStyle.Colors.background.ignoresSafeArea())
             .navigationTitle("Collection")
             .toolbarTitleDisplayMode(.large)
@@ -48,11 +67,26 @@ struct HomeView: View {
             .onChange(of: scans.count) {
                 processSharedScans()
             }
+            .onChange(of: scans.map(\.analysisStatus)) {
+                // Auto-navigate when a scan completes
+                if let scan = scans.first(where: {
+                    $0.analysisStatus == "completed" && $0.persistentModelID == completedScanID
+                }) {
+                    completedScanID = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        path.append(scan.persistentModelID)
+                    }
+                }
+            }
+            .onChange(of: analyzingScan?.persistentModelID) { _, newValue in
+                if let id = newValue {
+                    completedScanID = id
+                }
+            }
         }
     }
 
     private func processSharedScans() {
-        // Pick up marker files dropped by the Share Extension
         guard let container = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: AppConstants.appGroupIdentifier
         ) else { return }
@@ -67,13 +101,11 @@ struct HomeView: View {
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: String],
                   let fileName = json["imageFileName"] else { continue }
 
-            // Create scan and start analysis
             let scan = PatternScan(imageFileName: fileName)
             scan.analysisStatus = "analyzing"
             modelContext.insert(scan)
             try? modelContext.save()
 
-            // Remove marker
             try? FileManager.default.removeItem(at: fileURL)
 
             Task {
@@ -108,7 +140,7 @@ struct HomeView: View {
     private var scanGridView: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 20) {
-                ForEach(scans) { scan in
+                ForEach(displayedScans) { scan in
                     NavigationLink(value: scan.persistentModelID) {
                         ScanCardView(scan: scan)
                     }
@@ -124,7 +156,7 @@ struct HomeView: View {
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
-            .padding(.bottom, 32)
+            .padding(.bottom, analyzingScan != nil ? 100 : 32)
         }
     }
 
