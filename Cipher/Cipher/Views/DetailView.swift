@@ -104,6 +104,7 @@ struct DetailView: View {
         .task {
             await viewModel.loadImage()
             await viewModel.loadMaterialImage()
+            await viewModel.loadMomentImages()
         }
         .onChange(of: scan.analysisStatus) {
             viewModel.refreshIfNeeded()
@@ -241,32 +242,10 @@ struct DetailView: View {
                 materialProductionSection
             }
 
-            if let data = viewModel.historyOrigins {
+            // Card 5 — Contemporary Relevance
+            if viewModel.contemporary != nil {
                 sectionDivider
-                categorySection(title: "History & Origins", icon: "clock.arrow.circlepath") {
-                    historyContent(data)
-                }
-            }
-
-            if let data = viewModel.culturalRefs {
-                sectionDivider
-                categorySection(title: "Cultural References", icon: "book.closed") {
-                    culturalContent(data)
-                }
-            }
-
-            if let data = viewModel.popCulture {
-                sectionDivider
-                categorySection(title: "Music, Film & Pop Culture", icon: "film") {
-                    popCultureContent(data)
-                }
-            }
-
-            if let data = viewModel.contemporary {
-                sectionDivider
-                categorySection(title: "Contemporary Relevance", icon: "sparkles") {
-                    contemporaryContent(data)
-                }
+                contemporaryRelevanceSection
             }
 
             if !viewModel.metItems.isEmpty || !viewModel.europeanaItems.isEmpty {
@@ -499,6 +478,81 @@ struct DetailView: View {
         return Color(hex: "#5A6B52") // muted green fallback
     }
 
+    // MARK: - Contemporary Relevance (Card 5)
+
+    private var contemporaryRelevanceSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Contemporary Relevance")
+                    .font(CipherStyle.Fonts.title2)
+                    .padding(.top, 12)
+
+                if let contemporary = viewModel.contemporary {
+                    Text(contemporary.summary)
+                        .font(CipherStyle.Fonts.body(15))
+                        .foregroundStyle(CipherStyle.Colors.primaryText)
+                        .lineSpacing(4)
+
+                    // Notable references grid
+                    if let refs = contemporary.notableReferences, !refs.isEmpty {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 12),
+                            GridItem(.flexible(), spacing: 12)
+                        ], spacing: 20) {
+                            ForEach(refs) { ref in
+                                momentCard(ref)
+                            }
+                        }
+                    }
+
+                    // Closing sentence
+                    Text(contemporary.whyItResonatesNow)
+                        .font(CipherStyle.Fonts.titleItalic(17))
+                        .foregroundStyle(CipherStyle.Colors.primaryText)
+                        .lineSpacing(3)
+                        .padding(.top, 4)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 28)
+        }
+    }
+
+    private func momentCard(_ moment: CulturalMoment) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Color.clear
+                .aspectRatio(4.0/3.0, contentMode: .fit)
+                .overlay {
+                    if let url = viewModel.momentImageURLs[moment.id] {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            case .failure:
+                                Rectangle().fill(.white.opacity(0.04))
+                            default:
+                                Rectangle().fill(.white.opacity(0.04))
+                            }
+                        }
+                    } else {
+                        Rectangle().fill(.white.opacity(0.04))
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            Text(moment.category)
+                .font(CipherStyle.Fonts.body(13, weight: .bold))
+                .foregroundStyle(CipherStyle.Colors.primaryText)
+
+            Text(moment.description)
+                .font(CipherStyle.Fonts.body(12))
+                .foregroundStyle(.secondary)
+                .lineSpacing(2)
+        }
+    }
+
     private func colorSwatchRow(_ entry: ColorEntry) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Circle()
@@ -553,250 +607,6 @@ struct DetailView: View {
             if name.contains(key) { return Color(hex: hex) }
         }
         return Color(hex: "#888888")
-    }
-
-    // MARK: - Category Section
-
-    private func categorySection<Content: View>(
-        title: String,
-        icon: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(.secondary)
-                Text(title)
-                    .font(CipherStyle.Fonts.title2)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-
-            content()
-                .padding(.horizontal, 24)
-        }
-        .padding(.bottom, 24)
-    }
-
-    // MARK: - Category Content Builders
-
-    @ViewBuilder
-    private func historyContent(_ data: HistoryOrigins) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        InfoRow(label: "Period", value: data.originPeriod)
-        InfoRow(label: "Geographic Origin", value: data.geographicOrigin)
-        InfoRow(label: "Cultural Origin", value: data.culturalOrigin)
-
-        if !data.evolutionTimeline.isEmpty {
-            Text("Evolution Timeline")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                .padding(.top, 4)
-
-            ForEach(data.evolutionTimeline) { entry in
-                HStack(alignment: .top, spacing: 10) {
-                    Text(entry.period)
-                        .font(CipherStyle.Fonts.body(11, weight: .medium))
-                        .frame(width: 80, alignment: .leading)
-                    Text(entry.description)
-                        .font(CipherStyle.Fonts.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-
-        if !data.tradeAndColonialInfluences.isEmpty {
-            Text("Trade & Colonial Influences")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                .padding(.top, 4)
-            BulletList(items: data.tradeAndColonialInfluences)
-        }
-
-        if !data.revivalMoments.isEmpty {
-            Text("Revival Moments")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-                .padding(.top, 4)
-            BulletList(items: data.revivalMoments)
-        }
-    }
-
-    @ViewBuilder
-    private func symbolsContent(_ data: SymbolsMotifs) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        if !data.primaryMotifs.isEmpty {
-            Text("Primary Motifs")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-
-            ForEach(data.primaryMotifs) { motif in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(motif.name)
-                        .font(CipherStyle.Fonts.body(13, weight: .medium))
-                    Text(motif.meaning)
-                        .font(CipherStyle.Fonts.caption)
-                        .foregroundStyle(.secondary)
-                    Text(motif.geometricDescription)
-                        .font(CipherStyle.Fonts.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(.vertical, 2)
-            }
-        }
-
-        InfoRow(label: "Sacred vs Decorative", value: data.sacredVsDecorative)
-
-        if !data.hiddenMeanings.isEmpty {
-            Text("Hidden Meanings")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.hiddenMeanings)
-        }
-
-        if !data.crossCulturalOverlaps.isEmpty {
-            Text("Cross-Cultural Overlaps")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.crossCulturalOverlaps)
-        }
-
-        if !data.mythologicalReferences.isEmpty {
-            Text("Mythological References")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.mythologicalReferences)
-        }
-    }
-
-    @ViewBuilder
-    private func culturalContent(_ data: CulturalRefs) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        ReferenceList(title: "Literary References", references: data.literaryReferences)
-        ReferenceList(title: "Myths & Folklore", references: data.mythsAndFolklore)
-        ReferenceList(title: "Artworks", references: data.artworks)
-
-        if !data.museumCollections.isEmpty {
-            Text("Museum Collections")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.museumCollections)
-        }
-
-        if !data.fashionReinterpretations.isEmpty {
-            Text("Fashion Reinterpretations")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.fashionReinterpretations)
-        }
-    }
-
-    @ViewBuilder
-    private func colorContent(_ data: ColorIntel) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        if !data.dominantColors.isEmpty {
-            Text("Dominant Colors")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-
-            ForEach(data.dominantColors) { color in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(color.color)
-                        .font(CipherStyle.Fonts.body(13, weight: .medium))
-                    Text("Symbolism: \(color.symbolism)")
-                        .font(CipherStyle.Fonts.caption)
-                        .foregroundStyle(.secondary)
-                    Text("Cultural: \(color.culturalMeaning)")
-                        .font(CipherStyle.Fonts.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(.vertical, 2)
-            }
-        }
-
-        if !data.emotionalAssociations.isEmpty {
-            Text("Emotional Associations")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.emotionalAssociations)
-        }
-
-        InfoRow(label: "Dye History", value: data.dyeHistory)
-
-        if !data.statusMarkers.isEmpty {
-            Text("Status Markers")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.statusMarkers)
-        }
-
-        InfoRow(label: "Meaning Evolution", value: data.meaningEvolution)
-    }
-
-    @ViewBuilder
-    private func materialContent(_ data: MaterialTech) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        InfoRow(label: "Textile Type", value: data.textileType)
-        InfoRow(label: "Weaving Technique", value: data.weavingTechnique)
-        InfoRow(label: "Handcrafted vs Industrial", value: data.handcraftedVsIndustrial)
-
-        if !data.regionSpecificTechniques.isEmpty {
-            Text("Region-Specific Techniques")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.regionSpecificTechniques)
-        }
-
-        InfoRow(label: "Labor & Social History", value: data.laborAndSocialHistory)
-        InfoRow(label: "Sustainability", value: data.sustainabilityNotes)
-    }
-
-    @ViewBuilder
-    private func popCultureContent(_ data: PopCultureRefs) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        ReferenceList(title: "Songs", references: data.songs)
-        ReferenceList(title: "Films & Characters", references: data.filmsAndCharacters)
-
-        if !data.subcultures.isEmpty {
-            Text("Subcultures")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.subcultures)
-        }
-
-        if !data.popHistoryMoments.isEmpty {
-            Text("Pop History Moments")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.popHistoryMoments)
-        }
-
-        if !data.notableArtists.isEmpty {
-            Text("Notable Artists")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.notableArtists)
-        }
-    }
-
-    @ViewBuilder
-    private func contemporaryContent(_ data: ContemporaryRel) -> some View {
-        Text(data.summary)
-            .font(CipherStyle.Fonts.subheadline)
-
-        ReferenceList(title: "Designer Reinterpretations", references: data.designerReinterpretations)
-
-        if !data.politicalSocialReclaiming.isEmpty {
-            Text("Political & Social Reclaiming")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.politicalSocialReclaiming)
-        }
-
-        InfoRow(label: "Trend Forecast", value: data.trendForecast)
-        InfoRow(label: "Why It Resonates Now", value: data.whyItResonatesNow)
-
-        if !data.controversies.isEmpty {
-            Text("Controversies & Debates")
-                .font(CipherStyle.Fonts.body(13, weight: .semibold))
-            BulletList(items: data.controversies)
-        }
     }
 
     // MARK: - Enrichment Section

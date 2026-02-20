@@ -129,6 +129,15 @@ struct ContemporaryRel: Codable {
     let trendForecast: String
     let whyItResonatesNow: String
     let controversies: [String]
+    var notableReferences: [CulturalMoment]? = nil
+}
+
+struct CulturalMoment: Codable, Identifiable {
+    let category: String
+    let description: String
+    var imageQuery: String? = nil
+
+    var id: String { "\(category)-\(description.prefix(20))" }
 }
 
 // MARK: - Cultural Shifts (Card 3)

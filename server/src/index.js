@@ -99,16 +99,23 @@ Return this exact JSON structure. ALL fields are REQUIRED — do not omit any.
     "notable_artists": ["brief items"]
   },
   "contemporary_relevance": {
-    "summary": "2-3 sentences",
+    "summary": "1-2 sharp sentences on why this pattern still appears today. Max 80 words. Address: why it persists, what conversations it enters, whether it reads as nostalgic/ironic/authoritative/timeless.",
     "designer_reinterpretations": [{"title": "t", "description": "d", "source": "s"}],
     "political_social_reclaiming": ["brief items"],
     "trend_forecast": "1-2 sentences",
     "why_it_resonates_now": "1-2 sentences",
-    "controversies": ["brief items"]
+    "controversies": ["brief items"],
+    "notable_references": [
+      {"category": "Runway Moment", "description": "1 concise sentence about a specific designer runway use", "image_query": "designer name pattern runway fashion"},
+      {"category": "Celebrity Association", "description": "1 concise sentence about a celebrity/icon linked to this pattern", "image_query": "celebrity name pattern fashion"},
+      {"category": "Subculture Movement", "description": "1 concise sentence about a subculture that adopted this pattern", "image_query": "subculture name pattern fashion style"},
+      {"category": "Film Reference", "description": "1 concise sentence about a notable film appearance", "image_query": "film name costume pattern scene"}
+    ]
   }
 }
 
-CRITICAL: pattern_profile and cultural_shifts MUST be included — they appear near the top of the schema for a reason. pattern_profile MUST contain exactly 5 entries. Pick the 5 most relevant from: Heritage, Structure, Ornamentation, Authority, Subversion, Fluidity, Rebellion, Playfulness, Formality, Spirituality, Minimalism, Opulence. Score each 1-5.`;
+CRITICAL: pattern_profile and cultural_shifts MUST be included — they appear near the top of the schema for a reason. pattern_profile MUST contain exactly 5 entries. Pick the 5 most relevant from: Heritage, Structure, Ornamentation, Authority, Subversion, Fluidity, Rebellion, Playfulness, Formality, Spirituality, Minimalism, Opulence. Score each 1-5.
+notable_references MUST contain 3-5 entries. Pick from: Runway Moment, Celebrity Association, Subculture Movement, Film Reference, Music Reference. Use REAL, specific people/films/designers — never generic placeholders. image_query should be a short Wikimedia Commons search (3-5 words) to find a relevant photo.`;
 
 // POST /api/analyze - Submit image, returns job ID immediately
 app.post("/api/analyze", async (req, res) => {

@@ -20,6 +20,7 @@ class DetailViewModel {
 
     var scanImage: UIImage?
     var materialImageURL: URL?
+    var momentImageURLs: [String: URL] = [:]
 
     init(scan: PatternScan) {
         self.scan = scan
@@ -35,6 +36,23 @@ class DetailViewModel {
             ?? materialTech.map { "\($0.textileType) \($0.weavingTechnique) textile" }
         guard let query else { return }
         materialImageURL = await searchWikimediaImage(query: query)
+    }
+
+    func loadMomentImages() async {
+        guard let refs = contemporary?.notableReferences else { return }
+        await withTaskGroup(of: (String, URL?).self) { group in
+            for ref in refs {
+                guard let query = ref.imageQuery else { continue }
+                let key = ref.id
+                group.addTask {
+                    let url = await self.searchWikimediaImage(query: query)
+                    return (key, url)
+                }
+            }
+            for await (key, url) in group {
+                if let url { momentImageURLs[key] = url }
+            }
+        }
     }
 
     func refreshIfNeeded() {
