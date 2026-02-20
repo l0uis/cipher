@@ -33,7 +33,6 @@ Return this exact JSON structure. ALL fields are REQUIRED — do not omit any.
 {
   "pattern_name": "e.g. Persian Herati",
   "pattern_origin": "e.g. Isfahan, Iran",
-  "confidence_note": "your confidence level",
   "cultural_shifts": {
     "summary": "2 short paragraphs on how this pattern moved between social classes, power structures, and subcultures (aristocracy, military, working class, counterculture, colonial trade, religion). Max 180 words.",
     "revival_cycles": ["max 4 key revival moments, e.g. Clan identity, Victorian romanticism, Punk rebellion, Luxury branding"],
@@ -63,14 +62,6 @@ Return this exact JSON structure. ALL fields are REQUIRED — do not omit any.
     "cross_cultural_overlaps": ["brief items"],
     "mythological_references": ["brief items"]
   },
-  "cultural_references": {
-    "summary": "2-3 sentences",
-    "literary_references": [{"title": "t", "description": "d", "source": "s"}],
-    "myths_and_folklore": [{"title": "t", "description": "d", "source": "s"}],
-    "artworks": [{"title": "t", "description": "d", "source": "s"}],
-    "museum_collections": ["brief items"],
-    "fashion_reinterpretations": ["brief items"]
-  },
   "color_intelligence": {
     "summary": "2-3 sentences",
     "dominant_colors": [{"color": "name", "hex_color": "#8B0000", "symbolism": "brief", "cultural_meaning": "brief", "emotional_keywords": ["keyword1", "keyword2", "keyword3"]}],
@@ -89,14 +80,6 @@ Return this exact JSON structure. ALL fields are REQUIRED — do not omit any.
     "sustainability_notes": "1-2 sentences",
     "did_you_know": "One surprising, tactile, or little-known fact about how this specific textile is made. Keep it vivid and specific — something a textile designer would find fascinating.",
     "material_image_query": "A short Wikimedia Commons search query (2-4 words) to find an image of this material being made or the raw materials, e.g. 'handloom weaving wool' or 'silk dyeing vat' or 'jacquard loom textile'"
-  },
-  "music_film_pop_culture": {
-    "summary": "2-3 sentences",
-    "songs": [{"title": "t", "description": "d", "source": "s"}],
-    "films_and_characters": [{"title": "t", "description": "d", "source": "s"}],
-    "subcultures": ["brief items"],
-    "pop_history_moments": ["brief items"],
-    "notable_artists": ["brief items"]
   },
   "contemporary_relevance": {
     "summary": "1-2 sharp sentences on why this pattern still appears today. Max 80 words. Address: why it persists, what conversations it enters, whether it reads as nostalgic/ironic/authoritative/timeless.",
@@ -233,36 +216,6 @@ async function processAnalysis(jobId, imageBase64) {
   // Clean up after 10 minutes
   setTimeout(() => jobs.delete(jobId), 10 * 60 * 1000);
 }
-
-// GET /api/enrichment/europeana
-app.get("/api/enrichment/europeana", async (req, res) => {
-  try {
-    const europeanaKey = process.env.EUROPEANA_API_KEY;
-    if (!europeanaKey) return res.json({ items: [] });
-
-    const query = req.query.q;
-    if (!query)
-      return res.status(400).json({ error: "Missing query parameter 'q'" });
-
-    const params = new URLSearchParams({
-      query,
-      wskey: europeanaKey,
-      rows: "5",
-      profile: "rich",
-      media: "true",
-      reusability: "open",
-    });
-
-    const response = await fetch(
-      `https://api.europeana.eu/record/v2/search.json?${params}`
-    );
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error("Europeana error:", err.message);
-    res.json({ items: [] });
-  }
-});
 
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 

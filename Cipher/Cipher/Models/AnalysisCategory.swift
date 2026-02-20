@@ -5,13 +5,13 @@ import Foundation
 struct PatternAnalysisResponse: Codable {
     let patternName: String
     let patternOrigin: String
-    let confidenceNote: String
+    var confidenceNote: String? = nil
     let historyAndOrigins: HistoryOrigins
     let symbolsAndMotifs: SymbolsMotifs
-    let culturalReferences: CulturalRefs
+    var culturalReferences: CulturalRefs? = nil
     let colorIntelligence: ColorIntel
     let materialAndTechnique: MaterialTech
-    let musicFilmPopCulture: PopCultureRefs
+    var musicFilmPopCulture: PopCultureRefs? = nil
     let contemporaryRelevance: ContemporaryRel
     var culturalShifts: CulturalShifts? = nil
     var patternProfile: [PatternProfileAttribute]? = nil

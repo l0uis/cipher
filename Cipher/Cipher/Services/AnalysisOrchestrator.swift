@@ -43,8 +43,6 @@ actor AnalysisOrchestrator {
                 result.patternProfile = encodeToString(profile, encoder: encoder)
             }
 
-            await setStage("Searching museum collections...", scan: scan, context: modelContext)
-
             await MainActor.run {
                 scan.patternName = analysis.patternName
                 scan.patternOrigin = analysis.patternOrigin
@@ -53,14 +51,6 @@ actor AnalysisOrchestrator {
                 scan.analysisStage = nil
                 try? modelContext.save()
             }
-
-            // Enrichment (non-blocking, best-effort)
-            await performEnrichment(
-                patternName: analysis.patternName,
-                origin: analysis.patternOrigin,
-                material: analysis.materialAndTechnique.textileType,
-                result: result
-            )
 
         } catch {
             await MainActor.run {
@@ -77,40 +67,6 @@ actor AnalysisOrchestrator {
             scan.analysisStage = stage
             try? context.save()
         }
-    }
-
-    private func performEnrichment(
-        patternName: String,
-        origin: String,
-        material: String,
-        result: AnalysisResult
-    ) async {
-        let searchQuery = "\(patternName) \(origin) textile"
-        let encoder = JSONEncoder()
-
-        async let metTask: Void = {
-            if let met = try? await MetMuseumService.shared.searchRelatedArtworks(
-                query: searchQuery, medium: "Textiles"
-            ), !met.isEmpty {
-                let encoded = try? encoder.encode(met)
-                await MainActor.run {
-                    result.metMuseumResults = encoded.flatMap { String(data: $0, encoding: .utf8) }
-                }
-            }
-        }()
-
-        async let europeanaTask: Void = {
-            if let eu = try? await EuropeanaService.shared.searchRelatedRecords(
-                query: searchQuery
-            ), !eu.isEmpty {
-                let encoded = try? encoder.encode(eu)
-                await MainActor.run {
-                    result.europeanaResults = encoded.flatMap { String(data: $0, encoding: .utf8) }
-                }
-            }
-        }()
-
-        _ = await (metTask, europeanaTask)
     }
 
     private func encodeToString<T: Encodable>(_ value: T, encoder: JSONEncoder) -> String? {

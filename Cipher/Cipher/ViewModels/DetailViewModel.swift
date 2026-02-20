@@ -15,9 +15,6 @@ class DetailViewModel {
     var culturalShifts: CulturalShifts?
     var patternProfile: [PatternProfileAttribute] = []
 
-    var metItems: [MetMuseumItem] = []
-    var europeanaItems: [EuropeanaItem] = []
-
     var scanImage: UIImage?
     var materialImageURL: URL?
     var momentImageURLs: [String: URL] = [:]
@@ -112,8 +109,6 @@ class DetailViewModel {
         }
         print("[Cipher] Decoded — culturalShifts: \(culturalShifts != nil), patternProfile: \(patternProfile.count) items")
 
-        metItems = decode(result.metMuseumResults, as: [MetMuseumItem].self, decoder: decoder) ?? []
-        europeanaItems = decode(result.europeanaResults, as: [EuropeanaItem].self, decoder: decoder) ?? []
     }
 
     private func decode<T: Decodable>(_ jsonString: String?, as type: T.Type, decoder: JSONDecoder) -> T? {

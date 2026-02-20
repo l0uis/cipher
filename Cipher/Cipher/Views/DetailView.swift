@@ -248,11 +248,6 @@ struct DetailView: View {
                 contemporaryRelevanceSection
             }
 
-            if !viewModel.metItems.isEmpty || !viewModel.europeanaItems.isEmpty {
-                sectionDivider
-                enrichmentSection
-            }
-
             Spacer().frame(height: 48)
         }
     }
@@ -609,48 +604,5 @@ struct DetailView: View {
         return Color(hex: "#888888")
     }
 
-    // MARK: - Enrichment Section
-
-    private var enrichmentSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Visual References")
-                .font(CipherStyle.Fonts.title2)
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-
-            if !viewModel.metItems.isEmpty {
-                Text("The Metropolitan Museum of Art")
-                    .font(CipherStyle.Fonts.body(12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 24)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(viewModel.metItems) { item in
-                            MetMuseumCardView(item: item)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                }
-            }
-
-            if !viewModel.europeanaItems.isEmpty {
-                Text("Europeana Collection")
-                    .font(CipherStyle.Fonts.body(12, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 24)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(viewModel.europeanaItems) { item in
-                            EuropeanaCardView(item: item)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                }
-            }
-        }
-        .padding(.bottom, 28)
-    }
 }
 
